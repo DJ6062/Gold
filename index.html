@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GC — Gold Futures War Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #1a1a1a;
+    --border: #2a2a2a;
+    --border2: #333;
+    --gold: #C9A84C;
+    --gold2: #E8C76A;
+    --gold-dim: #8a6e2f;
+    --green: #2ECC71;
+    --green-dim: #1a5c38;
+    --green-bg: #0d2e1c;
+    --red: #E74C3C;
+    --red-dim: #7a2020;
+    --red-bg: #2e0d0d;
+    --amber: #F39C12;
+    --amber-bg: #2e1f05;
+    --blue: #3498DB;
+    --blue-bg: #0d1e2e;
+    --text: #f0f0f0;
+    --text2: #888;
+    --text3: #555;
+    --mono: 'Space Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --radius: 6px;
+    --radius-lg: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; }
+
+  /* HEADER */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px; border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 20px; }
+  .logo { font-family: var(--mono); font-size: 13px; color: var(--gold); letter-spacing: 0.12em; }
+  .price-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 6px 14px;
+  }
+  .price-label { font-size: 10px; color: var(--text3); letter-spacing: 0.08em; font-family: var(--mono); }
+  .price-val { font-family: var(--mono); font-size: 15px; color: var(--gold2); font-weight: 700; }
+  .price-chg { font-size: 11px; font-family: var(--mono); }
+  .price-chg.up { color: var(--green); }
+  .price-chg.down { color: var(--red); }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .session-tag {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+    padding: 5px 12px; border-radius: var(--radius);
+    border: 1px solid;
+  }
+  .session-hot { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+  .session-warn { border-color: var(--amber); color: var(--amber); background: var(--amber-bg); }
+  .session-cold { border-color: var(--text3); color: var(--text3); background: var(--bg3); }
+  .clock { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+
+  /* TABS */
+  .tab-nav {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border);
+    background: var(--bg2); padding: 0 28px; overflow-x: auto;
+  }
+  .tab-btn {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+    color: var(--text3); padding: 14px 20px; cursor: pointer;
+    border-bottom: 2px solid transparent; white-space: nowrap;
+    background: none; border-top: none; border-left: none; border-right: none;
+    transition: color 0.15s;
+  }
+  .tab-btn:hover { color: var(--text2); }
+  .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* MAIN */
+  .main { padding: 24px 28px; max-width: 1400px; margin: 0 auto; }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* GRID */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+  /* CARDS */
+  .card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px;
+  }
+  .card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    color: var(--gold-dim); text-transform: uppercase;
+  }
+
+  /* STAT CARDS */
+  .stat { background: var(--bg3); border-radius: var(--radius); padding: 16px; border: 1px solid var(--border); }
+  .stat-label { font-size: 10px; color: var(--text3); letter-spacing: 0.08em; font-family: var(--mono); margin-bottom: 6px; }
+  .stat-val { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+  .stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .gold-text { color: var(--gold2); }
+  .green-text { color: var(--green); }
+  .red-text { color: var(--red); }
+  .amber-text { color: var(--amber); }
+
+  /* BADGES */
+  .badge {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+    padding: 3px 8px; border-radius: 3px; border: 1px solid;
+  }
+  .badge-green { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+  .badge-red { border-color: var(--red); color: var(--red); background: var(--red-bg); }
+  .badge-amber { border-color: var(--amber); color: var(--amber); background: var(--amber-bg); }
+  .badge-gold { border-color: var(--gold); color: var(--gold); background: #1a1300; }
+  .badge-blue { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+  .badge-gray { border-color: var(--text3); color: var(--text3); background: var(--bg3); }
+
+  /* ROWS */
+  .row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .row:last-child { border-bottom: none; }
+  .row-left { display: flex; flex-direction: column; gap: 2px; }
+  .row-title { color: var(--text); }
+  .row-sub { font-size: 11px; color: var(--text3); }
+  .row-right { display: flex; align-items: center; gap: 10px; }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* REPORT LINKS — Tab 1 */
+  .report-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .report-item:last-child { border-bottom: none; }
+  .report-check {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 1.5px solid var(--border2); display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0; cursor: pointer;
+    transition: all 0.15s; font-size: 11px;
+  }
+  .report-check.done { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .report-check.skip { background: var(--border); border-color: var(--text3); color: var(--text3); }
+  .report-num { font-family: var(--mono); font-size: 10px; color: var(--gold-dim); min-width: 18px; }
+  .report-body { flex: 1; }
+  .report-name { font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .report-desc { font-size: 11px; color: var(--text3); line-height: 1.5; }
+  .report-link {
+    font-family: var(--mono); font-size: 10px; color: var(--gold);
+    border: 1px solid var(--gold-dim); border-radius: var(--radius);
+    padding: 5px 12px; text-decoration: none; white-space: nowrap;
+    transition: all 0.15s; background: #1a1300;
+  }
+  .report-link:hover { background: var(--gold); color: #000; }
+  .impact-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .impact-high { background: var(--red); }
+  .impact-med { background: var(--amber); }
+  .impact-low { background: var(--text3); }
+
+  /* CHECKLIST — Tab 2 */
+  .check-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .check-item:last-child { border-bottom: none; }
+  .check-box {
+    width: 20px; height: 20px; border: 1.5px solid var(--border2);
+    border-radius: 4px; flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; transition: all 0.15s;
+  }
+  .check-box.done { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .check-box.na { background: var(--border); border-color: var(--text3); color: var(--text3); }
+  .check-label { font-size: 13px; color: var(--text); line-height: 1.4; }
+  .check-note { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* SIGNAL DISPLAY */
+  .signal-display {
+    text-align: center; padding: 28px;
+    border-radius: var(--radius-lg); border: 1px solid var(--border);
+    background: var(--bg3); margin-bottom: 20px;
+  }
+  .signal-label { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: 0.12em; margin-bottom: 10px; }
+  .signal-text { font-family: var(--mono); font-size: 36px; font-weight: 700; letter-spacing: 0.05em; }
+  .signal-green { color: var(--green); }
+  .signal-amber { color: var(--amber); }
+  .signal-red { color: var(--red); }
+  .signal-progress { height: 4px; background: var(--border); border-radius: 2px; margin-top: 14px; overflow: hidden; }
+  .signal-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; }
+
+  /* LEVELS INPUT */
+  .level-input {
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 8px 12px;
+    font-family: var(--mono); font-size: 13px; color: var(--gold2);
+    width: 110px; text-align: right; outline: none;
+  }
+  .level-input:focus { border-color: var(--gold-dim); }
+  .level-input::placeholder { color: var(--text3); }
+
+  /* COT BARS */
+  .cot-track { height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; flex: 1; }
+  .cot-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+  .cot-bull { background: var(--green); }
+  .cot-bear { background: var(--red); }
+
+  /* ENTRY MODEL — Tab 6 */
+  .setup-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 18px; margin-bottom: 14px;
+  }
+  .setup-name { font-family: var(--mono); font-size: 12px; color: var(--gold); margin-bottom: 8px; letter-spacing: 0.08em; }
+  .setup-rule { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .setup-rule:last-child { border-bottom: none; }
+  .rule-num { font-family: var(--mono); color: var(--gold-dim); min-width: 18px; font-size: 11px; }
+  .rule-text { color: var(--text2); line-height: 1.5; }
+
+  /* MARKET STATUS BARS */
+  .corr-bar { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 12px; }
+  .corr-label { color: var(--text2); min-width: 90px; }
+  .corr-track { flex: 1; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .corr-fill { height: 100%; border-radius: 3px; }
+  .corr-val { font-family: var(--mono); font-size: 11px; min-width: 40px; text-align: right; }
+
+  /* LOADING */
+  .loading { color: var(--text3); font-family: var(--mono); font-size: 11px; }
+  .pulse { animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .header { padding: 12px 16px; }
+    .main { padding: 16px; }
+    .tab-nav { padding: 0 16px; }
+    .grid2, .grid3, .grid4 { grid-template-columns: 1fr; }
+    .grid4 { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <div class="logo">GC // GOLD WAR ROOM</div>
+    <div class="price-chip">
+      <span class="price-label">GC1!</span>
+      <span class="price-val" id="gc-price">---.--</span>
+      <span class="price-chg" id="gc-chg">+0.00 (0.00%)</span>
+    </div>
+    <div class="price-chip">
+      <span class="price-label">DXY</span>
+      <span class="price-val" id="dxy-price" style="font-size:13px;">---.--</span>
+      <span class="price-chg" id="dxy-chg">0.00%</span>
+    </div>
+    <div class="price-chip">
+      <span class="price-label">10YR</span>
+      <span class="price-val" id="tyr-price" style="font-size:13px;">-.---%</span>
+      <span class="price-chg" id="tyr-chg">0.00%</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="session-tag" id="session-tag">CHECKING...</div>
+    <div class="clock" id="clock">--:-- ET</div>
+  </div>
+</header>
+
+<!-- TAB NAV -->
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab(0)">01 // MORNING REPORTS</button>
+  <button class="tab-btn" onclick="switchTab(1)">02 // PRE-MARKET CHECKLIST</button>
+  <button class="tab-btn" onclick="switchTab(2)">03 // MARKET STATUS</button>
+  <button class="tab-btn" onclick="switchTab(3)">04 // KEY LEVELS</button>
+  <button class="tab-btn" onclick="switchTab(4)">05 // COT / POSITIONING</button>
+  <button class="tab-btn" onclick="switchTab(5)">06 // ENTRY MODEL</button>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TAB 1: MORNING REPORTS -->
+  <div class="tab-pane active" id="pane-0">
+    <div class="grid2" style="gap:20px; align-items:start;">
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <span class="card-title">Daily reading list — in order</span>
+            <span id="reports-done-badge" class="badge badge-gray">0 / 7 read</span>
+          </div>
+
+          <div class="report-item" onclick="toggleReport(0)">
+            <div class="report-check" id="rc-0"></div>
+            <div class="report-num">01</div>
+            <div class="impact-dot impact-high"></div>
+            <div class="report-body">
+              <div class="report-name">DXY — US Dollar Index</div>
+              <div class="report-desc">Check direction first. Dollar up = gold headwind. Dollar down = gold tailwind. Sets your initial bias.</div>
+            </div>
+            <a class="report-link" href="https://tradingeconomics.com/commodity/dollar" target="_blank" onclick="e=>e.stopPropagation()">OPEN →</a>
+          </div>
+
+          <div class="report-item" onclick="toggleReport(1)">
+            <div class="report-check" id="rc-1"></div>
+            <div class="report-num">02</div>
+            <div class="impact-dot impact-high"></div>
+            <div class="report-body">
+              <div class="report-name">10-Year Treasury Yield</div>
+              <div class="report-desc">Real yields moving higher = pressure on gold. Yield falling = gold bullish. Check direction vs yesterday's close.</div>
+            </div>
+            <a class="report-link" href="https://tradingeconomics.com/united-states/government-bond-yield" target="_blank" onclick="e=>e.stopPropagation()">OPEN →</a>
+          </div>
+
+          <div class="report-item" onclick="toggleReport(2)">
+            <div class="report-check" id="rc-2"></div>
+            <div class="report-num">03</div>
+            <div class="impact-dot impact-high"></div>
+            <div class="report-body">
+              <div class="report-name">Kitco Gold News</div>
+              <div class="report-desc">Overnight sentiment, analyst price targets, physical demand, geopolitical headlines that move gold.</div>
+            </div>
+            <a class="report-link" href="https://www.kitco.com/news/gold/" target="_blank" onclick="e=>e.stopPropagation()">OPEN →</a>
+          </div>
+
+          <div class="report-item" onclick="toggleReport(3)">
+            <div class="report-check" id="rc-3"></div>
+            <div class="report-num">04</div>
+            <div class="impact-dot impact-high"></div>
+            <div class="report-body">
+              <div class="report-name">CME Economic Calendar</div>
+              <div class="report-desc">Check today's data releases and exact times. Know what's dropping and when. No trades 15 min before Tier 1 events.</div>
+            </div>
+            <a class="report-link" href="https://www.cmegroup.com/education/economic-calendar.html" target="_blank" onclick="e=>e.stopPropagation()">OPEN →</a>
+          </div>
+
+          <div class="report-item" onclick="toggleReport(4)">
+            <div class="report-check" id="rc-4"></div>
+            <div class="report-num">05</div>
+            <div class="impact-dot impact-med"></div>
+            <div class="report-body">
+              <div class="report-name">Trading Economics — Gold Overview</div>
+              <div class="report-desc">Current GC price, daily range, analyst forecasts, macro context snapshot for today's session.</div>
+            </div>
+            <a class="report-link" href="https://tradingeconomics.com/commodity/gold" target="_blank" onclick="e=>e.stopPropagation()">OPEN →</a>
+          </div>
+
+          <div class="report-item" onclick="toggleReport(5)">
+            <div class="report-check" id="rc-5"></div>
+            <div class="report-num">06</div>
+            <div class="impact-dot impact-med"></div>
+            <div class="report-body">
+              <div class="report-name">Barchart — GC Futures Technicals</div>
+              <div class="report-desc">Institutional technical summary, support/resistance levels, open interest, volume profile for the day.</div>
+            </div>
+            <a class="report-link" href="https://www.barchart.com/futures/quotes/GC*1/overview" target="_blank" onclick="e=>e.stopPropagation()">OPEN →</a>
+          </div>
+
+          <div class="report-item" onclick="toggleReport(6)">
+            <div class="report-check" id="rc-6"></div>
+            <div class="report-num">07</div>
+            <div class="impact-dot impact-low"></div>
+            <div class="report-body">
+              <div class="report-name">CFTC COT Report (Fridays only)</div>
+              <div class="report-desc">Released every Friday at 3:30 PM ET. Large Spec positioning — check if crowded or room to run. Updates weekly macro bias.</div>
+            </div>
+            <a class="report-link" href="https://www.barchart.com/futures/commitment-of-traders/GC*1" target="_blank" onclick="e=>e.stopPropagation()">OPEN →</a>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header"><span class="card-title">Today's scheduled events</span></div>
+          <div id="events-list">
+            <div class="row">
+              <div class="row-left">
+                <span class="row-title">FOMC Rate Decision</span>
+                <span class="row-sub">Federal Reserve interest rate announcement</span>
+              </div>
+              <div class="row-right">
+                <span style="font-family:var(--mono);font-size:11px;color:var(--text2);">2:00 PM ET</span>
+                <span class="badge badge-red">HIGH</span>
+              </div>
+            </div>
+            <div class="row">
+              <div class="row-left">
+                <span class="row-title">Q1 GDP + Jobless Claims</span>
+                <span class="row-sub">Dual release — both move gold</span>
+              </div>
+              <div class="row-right">
+                <span style="font-family:var(--mono);font-size:11px;color:var(--text2);">Thu 8:30 AM</span>
+                <span class="badge badge-red">HIGH</span>
+              </div>
+            </div>
+            <div class="row">
+              <div class="row-left">
+                <span class="row-title">ISM Manufacturing PMI</span>
+                <span class="row-sub">Soft print = risk-off = gold bid</span>
+              </div>
+              <div class="row-right">
+                <span style="font-family:var(--mono);font-size:11px;color:var(--text2);">Fri 10:00 AM</span>
+                <span class="badge badge-amber">MED</span>
+              </div>
+            </div>
+            <div class="row">
+              <div class="row-left">
+                <span class="row-title">COT Report Release</span>
+                <span class="row-sub">CFTC weekly positioning data</span>
+              </div>
+              <div class="row-right">
+                <span style="font-family:var(--mono);font-size:11px;color:var(--text2);">Fri 3:30 PM</span>
+                <span class="badge badge-blue">COT</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Reading impact guide</span></div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">DXY rising</span></div>
+            <span class="badge badge-red">GOLD HEADWIND</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">DXY falling</span></div>
+            <span class="badge badge-green">GOLD TAILWIND</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">10yr yields rising</span></div>
+            <span class="badge badge-red">GOLD HEADWIND</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">10yr yields falling</span></div>
+            <span class="badge badge-green">GOLD TAILWIND</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Geopolitical flare-up</span></div>
+            <span class="badge badge-green">SAFE HAVEN BID</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Risk-on equity rally</span></div>
+            <span class="badge badge-amber">WATCH — may fade gold</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Tier 1 news in &lt;15 min</span></div>
+            <span class="badge badge-red">STAY FLAT</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: PRE-MARKET CHECKLIST -->
+  <div class="tab-pane" id="pane-1">
+    <div class="grid2" style="gap:20px; align-items:start;">
+      <div>
+        <div class="signal-display" id="signal-display">
+          <div class="signal-label">TRADE AUTHORIZATION</div>
+          <div class="signal-text signal-red" id="signal-text">NOT READY</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:8px;" id="signal-sub">Complete checklist to unlock</div>
+          <div class="signal-progress">
+            <div class="signal-fill" id="signal-fill" style="width:0%;background:var(--red);"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Pre-market checklist</span>
+            <span id="checks-badge" class="badge badge-gray">0 / 10</span>
+          </div>
+
+          <div class="check-item" onclick="toggleCheck(0)">
+            <div class="check-box" id="cb-0"></div>
+            <div><div class="check-label">Morning reports read (Tab 1 complete)</div><div class="check-note">DXY, 10yr, Kitco, CME calendar all reviewed</div></div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(1)">
+            <div class="check-box" id="cb-1"></div>
+            <div><div class="check-label">Daily bias determined (bull / bear / neutral)</div><div class="check-note">Based on DXY direction, yield direction, overnight news</div></div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(2)">
+            <div class="check-box" id="cb-2"></div>
+            <div><div class="check-label">Globex high and low marked on chart</div><div class="check-note">Must be marked before 8:25 AM ET — these are sweep targets</div></div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(3)">
+            <div class="check-box" id="cb-3"></div>
+            <div><div class="check-label">PDH and PDL marked on chart</div><div class="check-note">Prior day high and low — most respected intraday levels</div></div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(4)">
+            <div class="check-box" id="cb-4"></div>
+            <div><div class="check-label">London session high and low marked</div><div class="check-note">Mark by 8:00 AM ET — potential London Raid reversal zones</div></div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(5)">
+            <div class="check-box" id="cb-5"></div>
+            <div><div class="check-label">VWAP visible and loaded on chart</div><div class="check-note">Institutional anchor — know if price is above or below</div></div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(6)">
+            <div class="check-box" id="cb-6"></div>
+            <div><div class="check-label">No Tier 1 news event in next 30 minutes</div><div class="check-note">FOMC, NFP, CPI, GDP — if yes, mark N/A and hold flat</div></div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(7)">
+            <div class="check-box" id="cb-7"></div>
+            <div><div class="check-label">HTF (4H / daily) bias confirmed</div><div class="check-note">Higher highs + higher lows = bullish. Opposite = bearish.</div></div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(8)">
+            <div class="check-box" id="cb-8"></div>
+            <div><div class="check-label">Order block or FVG identified on 15m chart</div><div class="check-note">Know your POI before price gets there — no chasing</div></div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(9)">
+            <div class="check-box" id="cb-9"></div>
+            <div><div class="check-label">Position size and stop calculated</div><div class="check-note">Know your $ risk before entry. Max loss today: $750.</div></div>
+          </div>
+
+          <hr class="divider">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:var(--text3);" id="checks-summary">0 of 10 complete</span>
+            <button onclick="resetChecks()" style="font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:5px 12px;cursor:pointer;letter-spacing:0.06em;">RESET</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header"><span class="card-title">Daily targets</span></div>
+          <div class="grid2" style="gap:10px;">
+            <div class="stat">
+              <div class="stat-label">PROFIT TARGET</div>
+              <div class="stat-val green-text">$1,500</div>
+              <div class="stat-sub">15 pts × 1 GC contract</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">MAX DAILY LOSS</div>
+              <div class="stat-val red-text">$750</div>
+              <div class="stat-sub">Hard stop — walk away</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">RISK PER TRADE</div>
+              <div class="stat-val amber-text">$250</div>
+              <div class="stat-sub">3 losses = daily limit hit</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">MIN REWARD RATIO</div>
+              <div class="stat-val gold-text">2:1</div>
+              <div class="stat-sub">Only take 2R+ setups</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Session window status</span></div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Asia / Globex</span><span class="row-sub">7 PM – 2 AM ET — builds overnight range</span></div>
+            <span class="badge badge-gray">RANGE BUILD</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">London open</span><span class="row-sub">3 AM – 5 AM ET — first institutional move</span></div>
+            <span class="badge badge-amber">WATCH</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">London / NY overlap</span><span class="row-sub">8 AM – 12 PM ET — peak volume</span></div>
+            <span class="badge badge-green">PRIMARY WINDOW</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">NY midday</span><span class="row-sub">12 PM – 2 PM ET — algo chop zone</span></div>
+            <span class="badge badge-red">AVOID</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">NY close</span><span class="row-sub">2 PM – 4 PM ET — position squaring</span></div>
+            <span class="badge badge-amber">SELECTIVE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: MARKET STATUS -->
+  <div class="tab-pane" id="pane-2">
+    <div class="grid4" style="margin-bottom:20px;">
+      <div class="stat">
+        <div class="stat-label">GC FUTURES</div>
+        <div class="stat-val gold-text" id="ms-gc">---.--</div>
+        <div class="stat-sub" id="ms-gc-chg">Loading...</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">DXY INDEX</div>
+        <div class="stat-val" id="ms-dxy">---.--</div>
+        <div class="stat-sub" id="ms-dxy-chg">Loading...</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">10YR YIELD</div>
+        <div class="stat-val" id="ms-10yr">-.--%</div>
+        <div class="stat-sub" id="ms-10yr-chg">Loading...</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">CURRENT BIAS</div>
+        <div class="stat-val" id="ms-bias" style="font-size:15px;">—</div>
+        <div class="stat-sub" id="ms-bias-sub">Set in checklist</div>
+      </div>
+    </div>
+
+    <div class="grid2" style="gap:20px; align-items:start;">
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header"><span class="card-title">Correlation dashboard</span></div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">Live directional relationships — update after reading reports</div>
+          <div class="corr-bar">
+            <span class="corr-label">DXY vs Gold</span>
+            <div class="corr-track"><div class="corr-fill" id="corr-dxy" style="width:65%;background:var(--red);"></div></div>
+            <span class="corr-val red-text">Inverse</span>
+          </div>
+          <div class="corr-bar">
+            <span class="corr-label">10yr vs Gold</span>
+            <div class="corr-track"><div class="corr-fill" id="corr-10yr" style="width:65%;background:var(--red);"></div></div>
+            <span class="corr-val red-text">Inverse</span>
+          </div>
+          <div class="corr-bar">
+            <span class="corr-label">VIX vs Gold</span>
+            <div class="corr-track"><div class="corr-fill" id="corr-vix" style="width:70%;background:var(--green);"></div></div>
+            <span class="corr-val green-text">Direct</span>
+          </div>
+          <div class="corr-bar">
+            <span class="corr-label">Oil vs Gold</span>
+            <div class="corr-track"><div class="corr-fill" id="corr-oil" style="width:50%;background:var(--amber);"></div></div>
+            <span class="corr-val amber-text">Variable</span>
+          </div>
+          <hr class="divider">
+          <div style="font-size:11px;color:var(--text3);line-height:1.7;">
+            <strong style="color:var(--text2);">Right now:</strong> Strong dollar + elevated yields = structural headwind on gold. Geopolitical risk (Strait of Hormuz) providing a floor. Watch for DXY reversal as the primary trigger for gold long setups.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Macro context — April 2026</span></div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">GC YTD performance</span></div>
+            <span class="badge badge-green">+38% (12 months)</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Goldman target (EOY)</span></div>
+            <span class="badge badge-gold">$5,400</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Current structure</span></div>
+            <span class="badge badge-amber">CORRECTIVE PHASE</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Macro support</span></div>
+            <span class="badge badge-blue">$4,400 HOLDING</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Central bank buying</span></div>
+            <span class="badge badge-green">STRUCTURAL BID</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Fed rate stance</span></div>
+            <span class="badge badge-amber">HOLD — WATCHING</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header"><span class="card-title">Position squaring awareness</span></div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:14px;">
+            Position squaring occurs when traders close open positions before major events or end of session. 
+            Recognizing it prevents chasing false breakouts.
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">When it happens</span><span class="row-sub">Pre-FOMC, pre-NFP, Friday close, end of month</span></div>
+            <span class="badge badge-amber">CAUTION</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">What it looks like</span><span class="row-sub">Drift toward VWAP/prior close with declining volume</span></div>
+            <span class="badge badge-gray">IDENTIFY</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">How to trade it</span><span class="row-sub">Don't chase the drift — wait for the event, then trade the reaction</span></div>
+            <span class="badge badge-blue">WAIT</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Globex sweep pattern</span><span class="row-sub">Price spikes above/below overnight high/low at 8:30 AM then reverses</span></div>
+            <span class="badge badge-green">SETUP</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Manual bias input</span></div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">After reading reports, set today's directional bias</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button onclick="setBias('BULLISH','bull')" id="bias-bull" style="flex:1;padding:12px;font-family:var(--mono);font-size:12px;letter-spacing:0.08em;cursor:pointer;border-radius:var(--radius);border:1px solid var(--green);color:var(--green);background:var(--green-bg);">BULLISH</button>
+            <button onclick="setBias('BEARISH','bear')" id="bias-bear" style="flex:1;padding:12px;font-family:var(--mono);font-size:12px;letter-spacing:0.08em;cursor:pointer;border-radius:var(--radius);border:1px solid var(--red);color:var(--red);background:var(--red-bg);">BEARISH</button>
+            <button onclick="setBias('NEUTRAL','neutral')" id="bias-neutral" style="flex:1;padding:12px;font-family:var(--mono);font-size:12px;letter-spacing:0.08em;cursor:pointer;border-radius:var(--radius);border:1px solid var(--text3);color:var(--text3);background:var(--bg3);">NEUTRAL</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: KEY LEVELS -->
+  <div class="tab-pane" id="pane-3">
+    <div class="grid2" style="gap:20px; align-items:start;">
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header"><span class="card-title">Morning input — update daily by 8:25 AM ET</span></div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Prior Day High (PDH)</span><span class="row-sub">Most respected intraday resistance</span></div>
+            <input class="level-input" id="inp-pdh" placeholder="0.00" onchange="saveLevel('pdh',this.value)">
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Prior Day Low (PDL)</span><span class="row-sub">Most respected intraday support</span></div>
+            <input class="level-input" id="inp-pdl" placeholder="0.00" onchange="saveLevel('pdl',this.value)">
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Globex High (ONH)</span><span class="row-sub">Overnight high — NY open sweep target</span></div>
+            <input class="level-input" id="inp-onh" placeholder="0.00" onchange="saveLevel('onh',this.value)">
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Globex Low (ONL)</span><span class="row-sub">Overnight low — NY open sweep target</span></div>
+            <input class="level-input" id="inp-onl" placeholder="0.00" onchange="saveLevel('onl',this.value)">
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">London Session High</span><span class="row-sub">Potential London Raid reversal zone</span></div>
+            <input class="level-input" id="inp-lh" placeholder="0.00" onchange="saveLevel('lh',this.value)">
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">London Session Low</span><span class="row-sub">Potential London Raid reversal zone</span></div>
+            <input class="level-input" id="inp-ll" placeholder="0.00" onchange="saveLevel('ll',this.value)">
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Today's VWAP (approx open)</span><span class="row-sub">Track live on chart — institutional anchor</span></div>
+            <input class="level-input" id="inp-vwap" placeholder="0.00" onchange="saveLevel('vwap',this.value)">
+          </div>
+          <hr class="divider">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:11px;color:var(--text3);" id="levels-saved-note">Levels auto-save locally</span>
+            <button onclick="clearLevels()" style="font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:5px 12px;cursor:pointer;">CLEAR ALL</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header"><span class="card-title">Structural macro levels — fixed</span></div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">ATH Zone</span><span class="row-sub">All-time high zone — 2026 peak</span></div>
+            <div class="row-right"><span style="font-family:var(--mono);color:var(--red);">$5,300+</span><span class="badge badge-red">MAJOR R</span></div>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Round handle</span></div>
+            <div class="row-right"><span style="font-family:var(--mono);color:var(--red);">$4,800</span><span class="badge badge-red">RESIST</span></div>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Round handle</span></div>
+            <div class="row-right"><span style="font-family:var(--mono);color:var(--red);">$4,700</span><span class="badge badge-amber">WATCH</span></div>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Round handle + support</span></div>
+            <div class="row-right"><span style="font-family:var(--mono);color:var(--green);">$4,500</span><span class="badge badge-green">SUPPORT</span></div>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Macro support zone</span></div>
+            <div class="row-right"><span style="font-family:var(--mono);color:var(--green);">$4,400</span><span class="badge badge-green">MAJOR S</span></div>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Line in the sand</span></div>
+            <div class="row-right"><span style="font-family:var(--mono);color:var(--green);">$4,000</span><span class="badge badge-gold">MACRO</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Globex sweep — how it works</span></div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.7;">
+            <strong style="color:var(--gold);font-family:var(--mono);font-size:11px;">STEP 1 —</strong> During overnight Globex (6 PM – 8:25 AM ET), gold builds a defined range on thin volume.<br><br>
+            <strong style="color:var(--gold);font-family:var(--mono);font-size:11px;">STEP 2 —</strong> At NY open (8:30 AM ET), institutional flow arrives. Price frequently spikes ABOVE the Globex high or BELOW the Globex low — hunting stop orders retail traders placed outside the range.<br><br>
+            <strong style="color:var(--gold);font-family:var(--mono);font-size:11px;">STEP 3 —</strong> After the sweep, price violently reverses back into the range. This reversal candle is your entry signal.<br><br>
+            <strong style="color:var(--gold);font-family:var(--mono);font-size:11px;">ENTRY —</strong> Wait for sweep confirmation + MSS on 5m chart. Enter on the first pullback into a 5m OB or FVG. Stop above/below sweep wick. Target: opposite Globex level.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: COT / POSITIONING -->
+  <div class="tab-pane" id="pane-4">
+    <div class="grid2" style="gap:20px; align-items:start;">
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <span class="card-title">COT positioning — GC (update Fridays)</span>
+            <span class="badge badge-blue">WEEKLY</span>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">Released every Friday at 3:30 PM ET by CFTC. Adjust sliders after reading the report.</div>
+
+          <div style="margin-bottom:18px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:13px;font-weight:500;color:var(--text);">Large Speculators (Hedge Funds)</span>
+              <span class="badge badge-amber">CROWDED</span>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">Smart money positioning — extreme longs = fade risk</div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <input type="range" min="0" max="100" value="72" id="cot-ls-slider" oninput="updateCOT('ls',this.value)" style="flex:1;">
+              <span style="font-family:var(--mono);font-size:13px;min-width:36px;text-align:right;" id="cot-ls-val">72%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--mono);">
+              <span>EXTREME SHORT</span><span>EXTREME LONG</span>
+            </div>
+          </div>
+
+          <div style="margin-bottom:18px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:13px;font-weight:500;color:var(--text);">Commercial Hedgers (Miners/Banks)</span>
+              <span class="badge badge-red">NET SHORT</span>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">Always hedging production — extreme short = bearish signal</div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <input type="range" min="0" max="100" value="68" id="cot-ch-slider" oninput="updateCOT('ch',this.value)" style="flex:1;">
+              <span style="font-family:var(--mono);font-size:13px;min-width:36px;text-align:right;" id="cot-ch-val">68%</span>
+            </div>
+          </div>
+
+          <div style="margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:13px;font-weight:500;color:var(--text);">Small Speculators (Retail)</span>
+              <span class="badge badge-gray">MODERATE</span>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">Often faded — heavy retail long + Large Spec trimming = danger</div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <input type="range" min="0" max="100" value="55" id="cot-ss-slider" oninput="updateCOT('ss',this.value)" style="flex:1;">
+              <span style="font-family:var(--mono);font-size:13px;min-width:36px;text-align:right;" id="cot-ss-val">55%</span>
+            </div>
+          </div>
+
+          <hr class="divider">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:var(--text3);">COT macro signal:</span>
+            <span id="cot-signal" class="badge badge-amber">CAUTIOUS LONGS</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header"><span class="card-title">How to read the COT report</span></div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Large Specs &gt; 85% long</span><span class="row-sub">Crowded trade — high reversal risk</span></div>
+            <span class="badge badge-red">FADE RALLIES</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Large Specs &lt; 20% long</span><span class="row-sub">Institutions likely to cover shorts</span></div>
+            <span class="badge badge-green">BUY DIPS</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Adding longs week-over-week</span><span class="row-sub">Trend continuation — buy pullbacks</span></div>
+            <span class="badge badge-green">TREND BIAS</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Reducing longs sharply</span><span class="row-sub">Distribution phase — caution on longs</span></div>
+            <span class="badge badge-red">DISTRIBUTION</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Retail long + Specs trimming</span><span class="row-sub">Classic top setup — look for shorts</span></div>
+            <span class="badge badge-red">TOP SIGNAL</span>
+          </div>
+          <div class="row">
+            <div class="row-left"><span class="row-title">Retail short + Specs adding</span><span class="row-sub">Classic washout bottom</span></div>
+            <span class="badge badge-green">BOTTOM SIGNAL</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">What position squaring looks like in price</span></div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.7;">
+            Before a major event (FOMC, NFP), traders close positions to avoid being caught offside. This creates a specific visual pattern:<br><br>
+            <span style="color:var(--gold);font-family:var(--mono);font-size:10px;">VOLUME ↓</span> — volume drops significantly in the 1–2 hours before the event.<br><br>
+            <span style="color:var(--gold);font-family:var(--mono);font-size:10px;">PRICE →</span> — price drifts sideways or mean-reverts toward VWAP or prior close with small candles.<br><br>
+            <span style="color:var(--gold);font-family:var(--mono);font-size:10px;">SPREAD ↑</span> — bid-ask spread widens slightly as market makers hedge exposure.<br><br>
+            <span style="color:var(--red);font-family:var(--mono);font-size:10px;">DANGER:</span> Don't interpret the drift as a breakout. It's not. Wait for the event to pass, then trade the actual institutional reaction.
+          </div>
+          <hr class="divider">
+          <a class="report-link" href="https://www.barchart.com/futures/commitment-of-traders/GC*1" target="_blank" style="display:inline-block;">OPEN LIVE COT CHART →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 6: ENTRY MODEL -->
+  <div class="tab-pane" id="pane-5">
+    <div class="grid2" style="gap:20px; align-items:start;">
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <span class="card-title">Setup 1 — London raid + NY reversal</span>
+            <span class="badge badge-gold">PRIMARY</span>
+          </div>
+          <div class="setup-card">
+            <div class="setup-name">// CONDITION</div>
+            <div class="setup-rule"><span class="rule-num">1.</span><span class="rule-text">London session (3–5 AM ET) sweeps prior day high or low, or Globex high/low</span></div>
+            <div class="setup-rule"><span class="rule-num">2.</span><span class="rule-text">At NY open (8:30 AM ET), price continues into sweep zone briefly, then reverses</span></div>
+            <div class="setup-rule"><span class="rule-num">3.</span><span class="rule-text">5m chart shows clear MSS (Market Structure Shift) — first lower high (for short) or higher low (for long)</span></div>
+          </div>
+          <div class="setup-card">
+            <div class="setup-name">// ENTRY</div>
+            <div class="setup-rule"><span class="rule-num">4.</span><span class="rule-text">Enter on first 5m pullback into an OB (Order Block) or FVG (Fair Value Gap) after MSS confirmation</span></div>
+            <div class="setup-rule"><span class="rule-num">5.</span><span class="rule-text">Limit order only — no market orders. Wait for price to come to you.</span></div>
+          </div>
+          <div class="setup-card">
+            <div class="setup-name">// STOP + TARGET</div>
+            <div class="setup-rule"><span class="rule-num">6.</span><span class="rule-text">Stop: above/below the sweep wick (2–5 pts buffer)</span></div>
+            <div class="setup-rule"><span class="rule-num">7.</span><span class="rule-text">Target 1 (50%): opposite Globex level or VWAP — partial exit here</span></div>
+            <div class="setup-rule"><span class="rule-num">8.</span><span class="rule-text">Target 2 (50%): prior day high/low or 2R minimum — trail stop to breakeven after T1</span></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <span class="card-title">Setup 2 — Globex sweep + reversal</span>
+            <span class="badge badge-blue">HIGH PROB</span>
+          </div>
+          <div class="setup-card">
+            <div class="setup-name">// CONDITION</div>
+            <div class="setup-rule"><span class="rule-num">1.</span><span class="rule-text">Mark Globex high and low before 8:25 AM ET every single day</span></div>
+            <div class="setup-rule"><span class="rule-num">2.</span><span class="rule-text">At 8:30 AM ET NY open, price spikes above Globex high OR below Globex low</span></div>
+            <div class="setup-rule"><span class="rule-num">3.</span><span class="rule-text">Spike candle closes BACK INSIDE the Globex range = sweep confirmed</span></div>
+          </div>
+          <div class="setup-card">
+            <div class="setup-name">// ENTRY + MANAGEMENT</div>
+            <div class="setup-rule"><span class="rule-num">4.</span><span class="rule-text">Entry: limit at 50% of the spike candle body, or first 5m OB inside range</span></div>
+            <div class="setup-rule"><span class="rule-num">5.</span><span class="rule-text">Stop: beyond the spike wick extreme</span></div>
+            <div class="setup-rule"><span class="rule-num">6.</span><span class="rule-text">Target: opposite Globex level (T1), then PDH/PDL (T2)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <span class="card-title">Setup 3 — OB + FVG confluence</span>
+            <span class="badge badge-green">SMC CORE</span>
+          </div>
+          <div class="setup-card">
+            <div class="setup-name">// MULTI-TIMEFRAME FLOW</div>
+            <div class="setup-rule"><span class="rule-num">1.</span><span class="rule-text">4H chart: identify the nearest unmitigated Order Block in HTF bias direction</span></div>
+            <div class="setup-rule"><span class="rule-num">2.</span><span class="rule-text">15m chart: confirm BOS (Break of Structure) in the same direction + FVG formation</span></div>
+            <div class="setup-rule"><span class="rule-num">3.</span><span class="rule-text">5m chart: wait for MSS + entry candle at the 15m FVG or 5m OB</span></div>
+            <div class="setup-rule"><span class="rule-num">4.</span><span class="rule-text">Confluence check: HTF OB + FVG + session time + prior level = highest probability</span></div>
+          </div>
+          <div class="setup-card">
+            <div class="setup-name">// STOP + TARGET</div>
+            <div class="setup-rule"><span class="rule-num">5.</span><span class="rule-text">Stop: below the 5m OB low (for longs) — 3 pt buffer minimum</span></div>
+            <div class="setup-rule"><span class="rule-num">6.</span><span class="rule-text">Target: next HTF OB, PDH/PDL, or institutional level — minimum 2R</span></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <span class="card-title">Confluence scoring — use before entry</span>
+            <span class="badge badge-amber">FILTER</span>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Score each setup. Only take 4+ point setups.</div>
+          <div id="conf-items">
+            <div class="check-item" onclick="toggleConf(0)">
+              <div class="check-box" id="conf-0"></div>
+              <div><div class="check-label">HTF bias aligns with trade direction (+1)</div></div>
+            </div>
+            <div class="check-item" onclick="toggleConf(1)">
+              <div class="check-box" id="conf-1"></div>
+              <div><div class="check-label">Trading in primary session window (+1)</div><div class="check-note">8 AM – 12 PM ET only</div></div>
+            </div>
+            <div class="check-item" onclick="toggleConf(2)">
+              <div class="check-box" id="conf-2"></div>
+              <div><div class="check-label">Entry at key structural level (+1)</div><div class="check-note">PDH, PDL, Globex level, round number</div></div>
+            </div>
+            <div class="check-item" onclick="toggleConf(3)">
+              <div class="check-box" id="conf-3"></div>
+              <div><div class="check-label">Order Block or FVG present at entry (+1)</div></div>
+            </div>
+            <div class="check-item" onclick="toggleConf(4)">
+              <div class="check-box" id="conf-4"></div>
+              <div><div class="check-label">MSS confirmed on 5m chart (+1)</div></div>
+            </div>
+            <div class="check-item" onclick="toggleConf(5)">
+              <div class="check-box" id="conf-5"></div>
+              <div><div class="check-label">DXY / 10yr correlations supporting trade (+1)</div></div>
+            </div>
+            <div class="check-item" onclick="toggleConf(6)">
+              <div class="check-box" id="conf-6"></div>
+              <div><div class="check-label">No Tier 1 news within 30 min (+1)</div></div>
+            </div>
+          </div>
+          <hr class="divider">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-family:var(--mono);font-size:13px;color:var(--text2);">Score: <span id="conf-score" style="color:var(--gold);">0</span> / 7</span>
+            <span id="conf-verdict" class="badge badge-red">SKIP — WAIT</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Position size calculator</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px;font-family:var(--mono);">RISK ($)</div>
+              <input class="level-input" id="calc-risk" value="250" style="width:100%;text-align:left;" oninput="calcPosition()">
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px;font-family:var(--mono);">STOP (pts)</div>
+              <input class="level-input" id="calc-stop" value="5" style="width:100%;text-align:left;" oninput="calcPosition()">
+            </div>
+          </div>
+          <div style="background:var(--bg3);border-radius:var(--radius);padding:14px;text-align:center;">
+            <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:4px;">CONTRACTS</div>
+            <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--gold);" id="calc-contracts">0.5</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px;" id="calc-note">= 1 contract at $250 risk / 5pt stop</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ——— CLOCK + SESSION ———
+function updateClock() {
+  const now = new Date();
+  const et = new Date(now.toLocaleString('en-US', {timeZone:'America/New_York'}));
+  const h = et.getHours(), m = et.getMinutes();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('clock').textContent = `${pad(h)}:${pad(m)} ET`;
+
+  const tag = document.getElementById('session-tag');
+  const total = h * 60 + m;
+  if (total >= 8*60 && total < 12*60) {
+    tag.textContent = 'NY/LONDON OVERLAP — LIVE';
+    tag.className = 'session-tag session-hot';
+  } else if (total >= 3*60 && total < 8*60) {
+    tag.textContent = 'LONDON SESSION';
+    tag.className = 'session-tag session-warn';
+  } else if (total >= 12*60 && total < 14*60) {
+    tag.textContent = 'MIDDAY — AVOID';
+    tag.className = 'session-tag session-cold';
+  } else if (total >= 14*60 && total < 16*60) {
+    tag.textContent = 'POSITION SQUARING';
+    tag.className = 'session-tag session-warn';
+  } else {
+    tag.textContent = 'GLOBEX / CLOSED';
+    tag.className = 'session-tag session-cold';
+  }
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ——— TAB SWITCHING ———
+function switchTab(idx) {
+  document.querySelectorAll('.tab-pane').forEach((p,i) => p.classList.toggle('active', i === idx));
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i === idx));
+}
+
+// ——— PRICE DATA (via Vercel API proxy) ———
+async function fetchPrices() {
+  try {
+    const r = await fetch('/api/prices');
+    if (!r.ok) throw new Error('API error');
+    const d = await r.json();
+    if (d.gc) {
+      const chg = d.gc.change || 0;
+      const pct = d.gc.changePct || 0;
+      document.getElementById('gc-price').textContent = Number(d.gc.price).toFixed(2);
+      document.getElementById('ms-gc').textContent = Number(d.gc.price).toFixed(2);
+      const gcChgEl = document.getElementById('gc-chg');
+      gcChgEl.textContent = `${chg >= 0 ? '+' : ''}${chg.toFixed(2)} (${pct.toFixed(2)}%)`;
+      gcChgEl.className = `price-chg ${chg >= 0 ? 'up' : 'down'}`;
+      document.getElementById('ms-gc-chg').textContent = `${chg >= 0 ? '+' : ''}${chg.toFixed(2)} today`;
+      document.getElementById('ms-gc-chg').style.color = chg >= 0 ? 'var(--green)' : 'var(--red)';
+    }
+    if (d.dxy) {
+      const chg = d.dxy.change || 0;
+      document.getElementById('dxy-price').textContent = Number(d.dxy.price).toFixed(2);
+      document.getElementById('ms-dxy').textContent = Number(d.dxy.price).toFixed(2);
+      const dxyChgEl = document.getElementById('dxy-chg');
+      dxyChgEl.textContent = `${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%`;
+      dxyChgEl.className = `price-chg ${chg >= 0 ? 'up' : 'down'}`;
+      document.getElementById('ms-dxy-chg').textContent = `DXY ${chg >= 0 ? 'rising — headwind' : 'falling — tailwind'}`;
+      document.getElementById('ms-dxy-chg').style.color = chg >= 0 ? 'var(--red)' : 'var(--green)';
+    }
+    if (d.tyr) {
+      const chg = d.tyr.change || 0;
+      document.getElementById('tyr-price').textContent = Number(d.tyr.price).toFixed(3) + '%';
+      document.getElementById('ms-10yr').textContent = Number(d.tyr.price).toFixed(3) + '%';
+      const tyrChgEl = document.getElementById('tyr-chg');
+      tyrChgEl.textContent = `${chg >= 0 ? '+' : ''}${chg.toFixed(3)}`;
+      tyrChgEl.className = `price-chg ${chg >= 0 ? 'up' : 'down'}`;
+      document.getElementById('ms-10yr-chg').textContent = `Yields ${chg >= 0 ? 'rising — headwind' : 'falling — tailwind'}`;
+      document.getElementById('ms-10yr-chg').style.color = chg >= 0 ? 'var(--red)' : 'var(--green)';
+    }
+  } catch(e) {
+    console.log('Price fetch failed — using fallback display');
+    document.getElementById('gc-price').textContent = '4,560';
+    document.getElementById('ms-gc').textContent = '4,560';
+    document.getElementById('gc-chg').textContent = 'live data via /api/prices';
+    document.getElementById('gc-chg').className = 'price-chg';
+    document.getElementById('gc-chg').style.color = 'var(--text3)';
+  }
+}
+fetchPrices();
+setInterval(fetchPrices, 60000);
+
+// ——— REPORT CHECKLIST ———
+const reportDone = new Array(7).fill(false);
+function toggleReport(i) {
+  reportDone[i] = !reportDone[i];
+  const el = document.getElementById('rc-' + i);
+  el.textContent = reportDone[i] ? '✓' : '';
+  el.className = 'report-check ' + (reportDone[i] ? 'done' : '');
+  const done = reportDone.filter(Boolean).length;
+  document.getElementById('reports-done-badge').textContent = `${done} / 7 read`;
+  document.getElementById('reports-done-badge').className = done >= 7 ? 'badge badge-green' : done >= 4 ? 'badge badge-amber' : 'badge badge-gray';
+}
+
+// ——— PRE-MARKET CHECKLIST ———
+const checks = new Array(10).fill(false);
+function toggleCheck(i) {
+  checks[i] = !checks[i];
+  const el = document.getElementById('cb-' + i);
+  el.textContent = checks[i] ? '✓' : '';
+  el.className = 'check-box ' + (checks[i] ? 'done' : '');
+  updateCheckSignal();
+}
+function resetChecks() {
+  checks.fill(false);
+  for (let i = 0; i < 10; i++) {
+    document.getElementById('cb-' + i).textContent = '';
+    document.getElementById('cb-' + i).className = 'check-box';
+  }
+  updateCheckSignal();
+}
+function updateCheckSignal() {
+  const done = checks.filter(Boolean).length;
+  document.getElementById('checks-badge').textContent = `${done} / 10`;
+  document.getElementById('checks-summary').textContent = `${done} of 10 complete`;
+  const fill = document.getElementById('signal-fill');
+  const text = document.getElementById('signal-text');
+  const sub = document.getElementById('signal-sub');
+  const pct = (done / 10) * 100;
+  fill.style.width = pct + '%';
+  if (done >= 9) {
+    text.textContent = 'GREEN LIGHT';
+    text.className = 'signal-text signal-green';
+    sub.textContent = 'All systems go — trade the plan';
+    fill.style.background = 'var(--green)';
+  } else if (done >= 6) {
+    text.textContent = 'CAUTION';
+    text.className = 'signal-text signal-amber';
+    sub.textContent = `${10 - done} items remaining`;
+    fill.style.background = 'var(--amber)';
+  } else {
+    text.textContent = 'NOT READY';
+    text.className = 'signal-text signal-red';
+    sub.textContent = 'Complete all items before trading';
+    fill.style.background = 'var(--red)';
+  }
+}
+
+// ——— BIAS BUTTONS ———
+let currentBias = null;
+function setBias(label, type) {
+  currentBias = type;
+  const colors = { bull: 'var(--green)', bear: 'var(--red)', neutral: 'var(--text3)' };
+  document.getElementById('ms-bias').textContent = label;
+  document.getElementById('ms-bias').style.color = colors[type];
+  document.getElementById('ms-bias-sub').textContent = 'Set manually from reports';
+  ['bull','bear','neutral'].forEach(t => {
+    const btn = document.getElementById('bias-' + t);
+    btn.style.opacity = t === type ? '1' : '0.4';
+  });
+}
+
+// ——— LEVELS LOCAL STORAGE ———
+function saveLevel(key, val) {
+  localStorage.setItem('gc_level_' + key, val);
+  document.getElementById('levels-saved-note').textContent = 'Saved ✓ — ' + new Date().toLocaleTimeString();
+}
+function clearLevels() {
+  ['pdh','pdl','onh','onl','lh','ll','vwap'].forEach(k => {
+    localStorage.removeItem('gc_level_' + k);
+    document.getElementById('inp-' + k).value = '';
+  });
+}
+function loadLevels() {
+  ['pdh','pdl','onh','onl','lh','ll','vwap'].forEach(k => {
+    const v = localStorage.getItem('gc_level_' + k);
+    if (v) document.getElementById('inp-' + k).value = v;
+  });
+}
+loadLevels();
+
+// ——— COT SLIDERS ———
+function updateCOT(type, val) {
+  document.getElementById('cot-' + type + '-val').textContent = val + '%';
+  const ls = parseInt(document.getElementById('cot-ls-slider').value);
+  const signal = document.getElementById('cot-signal');
+  if (ls >= 85) { signal.textContent = 'CROWDED — FADE RISK'; signal.className = 'badge badge-red'; }
+  else if (ls >= 70) { signal.textContent = 'CAUTIOUS LONGS'; signal.className = 'badge badge-amber'; }
+  else if (ls >= 40 && ls <= 60) { signal.textContent = 'NEUTRAL'; signal.className = 'badge badge-gray'; }
+  else if (ls <= 20) { signal.textContent = 'BUY DIPS'; signal.className = 'badge badge-green'; }
+  else { signal.textContent = 'CONSTRUCTIVE'; signal.className = 'badge badge-green'; }
+}
+
+// ——— CONFLUENCE SCORE ———
+const conf = new Array(7).fill(false);
+function toggleConf(i) {
+  conf[i] = !conf[i];
+  const el = document.getElementById('conf-' + i);
+  el.textContent = conf[i] ? '✓' : '';
+  el.className = 'check-box ' + (conf[i] ? 'done' : '');
+  const score = conf.filter(Boolean).length;
+  document.getElementById('conf-score').textContent = score;
+  const verdict = document.getElementById('conf-verdict');
+  if (score >= 6) { verdict.textContent = 'HIGH CONF — TAKE IT'; verdict.className = 'badge badge-green'; }
+  else if (score >= 4) { verdict.textContent = 'VALID SETUP'; verdict.className = 'badge badge-amber'; }
+  else { verdict.textContent = 'SKIP — WAIT'; verdict.className = 'badge badge-red'; }
+}
+
+// ——— POSITION CALCULATOR ———
+function calcPosition() {
+  const risk = parseFloat(document.getElementById('calc-risk').value) || 250;
+  const stop = parseFloat(document.getElementById('calc-stop').value) || 5;
+  const contracts = risk / (stop * 100);
+  document.getElementById('calc-contracts').textContent = contracts.toFixed(2);
+  document.getElementById('calc-note').textContent = `$${risk.toFixed(0)} risk ÷ (${stop}pts × $100) = ${contracts.toFixed(2)} contracts`;
+}
+calcPosition();
+</script>
+</body>
+</html>
