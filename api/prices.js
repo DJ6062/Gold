@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     const key  = `apikey=${API_KEY}`;
 
     const [gcRes, dxyRes, tyrRes] = await Promise.all([
-      fetch(`${base}?symbol=XAU/USD&${key}`),
+      fetch(`${base}?symbol=XAUUSD&exchange=FOREX&${key}`),
       fetch(`${base}?symbol=DX-Y.NYB&${key}`),
       fetch(`${base}?symbol=TNX&${key}`)
     ]);
