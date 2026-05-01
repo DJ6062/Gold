@@ -2,17 +2,16 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=59');
 
+  const AV_KEY = process.env.ALPHA_VANTAGE_API_KEY;
   const API_KEY = process.env.TWELVE_DATA_API_KEY;
 
-  if (!API_KEY) {
+  if (!AV_KEY && !TD_KEY) {
     return res.status(200).json({
-      gc:     { price: 4560.00, change: -18.50, changePct: -0.40 },
-      dxy:    { price: 104.32,  change:  0.42,  changePct:  0.40 },
-      tyr:    { price: 4.312,   change:  0.018, changePct:  0.42 },
-      source: 'mock — set TWELVE_DATA_API_KEY in Vercel env vars',
-      timestamp: new Date().toISOString()
-    });
-  }
+      debug: {
+        hasAV: !!process.env.ALPHA_VANTAGE_API_KEY,
+        hasTD: !!process.env.TWELVE_DATA_API_KEY,
+        allKeys: Object.keys(process.env).filter(k => k.includes('API'))
+      },
 
   const parseQuote = (q) => {
     if (!q || q.code === 400 || q.status === 'error') return null;
